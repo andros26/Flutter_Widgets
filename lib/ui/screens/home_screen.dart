@@ -10,11 +10,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Variable para rastrear qué opción del menú está resaltada
   String _rutaSeleccionada = AppRoutes.home;
+
+  // URL exacta de tu recurso en Azure Blob Storage (image_0490fc.png)
+  final String _azureProfileImageUrl =
+      "https://orders20251.blob.core.windows.net/users/371bdf14-71ca-40bc-afe1-7af9bb34d8e9.jpg";
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = themeController.isDarkMode;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
@@ -55,8 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(color: Colors.white, fontSize: 24),
               ),
             ),
-            const SizedBox(height: 10), // Espacio estético
-            // --- OPCIONES CON RESALTADO ---
+            const SizedBox(height: 10),
             _buildDrawerItem(
               icon: Icons.restaurant_menu,
               title: "Catálogo de Buñuelos",
@@ -72,10 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: "Calculadora IMC",
               route: AppRoutes.bmi,
             ),
-
             const Divider(),
-
-            // CERRAR SESIÓN (Sin resaltado persistente)
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text("Cerrar Sesión"),
@@ -88,59 +89,154 @@ class _HomeScreenState extends State<HomeScreen> {
 
       body: Center(
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.store, size: 100, color: Colors.orange),
-              const SizedBox(height: 10),
-              const Text(
-                "Panel de Control",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 30),
-
-              ElevatedButton.icon(
-                onPressed: () {
-                  setState(() => _rutaSeleccionada = AppRoutes.bmi);
-                  Navigator.pushNamed(context, AppRoutes.bmi);
-                },
-                icon: const Icon(Icons.health_and_safety),
-                label: const Text("Ir a Calculadora IMC"),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 30,
-                    vertical: 15,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // --- SECCIÓN DE BIENVENIDA ---
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey[900] : Colors.white,
+                    borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(isDark ? 80 : 15),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
-                  shape: RoundedRectangleBorder(
+                  child: Column(
+                    children: [
+                      // CORRECCIÓN 1: Contenedor circular con manejo robusto de errores de red
+                      Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.orange, width: 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.orange.withAlpha(50),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(70),
+                          child: Image.network(
+                            _azureProfileImageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: isDark
+                                    ? Colors.grey[850]
+                                    : Colors.grey[200],
+                                child: Icon(
+                                  Icons.person_rounded,
+                                  size: 80,
+                                  color: isDark
+                                      ? Colors.grey[600]
+                                      : Colors.grey[400],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      Text(
+                        "¡Bienvenido de nuevo!",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "Jovanny Andres Alvarez Montoya",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // --- FIN SECCIÓN BIENVENIDA ---
+                const SizedBox(height: 40),
+
+                ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() => _rutaSeleccionada = AppRoutes.bmi);
+                    Navigator.pushNamed(context, AppRoutes.bmi);
+                  },
+                  icon: const Icon(Icons.health_and_safety),
+                  label: const Text("Ir a Calculadora IMC"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange[800],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 40,
+                      vertical: 15,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    elevation: 3,
+                  ),
+                ),
+
+                const SizedBox(height: 25),
+
+                // CONTROLADOR MODO OSCURO
+                Container(
+                  width: 260,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey[850] : Colors.grey[100],
                     borderRadius: BorderRadius.circular(20),
                   ),
+                  child: ListenableBuilder(
+                    listenable: themeController,
+                    builder: (context, child) {
+                      return SwitchListTile(
+                        title: const Text(
+                          "Modo Oscuro",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        value: themeController.isDarkMode,
+                        onChanged: (bool value) =>
+                            themeController.toggleTheme(),
+                        secondary: const Icon(
+                          Icons.brightness_6,
+                          color: Colors.orange,
+                        ),
+                        // CORRECCIÓN 2: Se removió activeColor para evitar advertencias de desuso
+                        contentPadding: EdgeInsets.zero,
+                      );
+                    },
+                  ),
                 ),
-              ),
-
-              const SizedBox(height: 20),
-
-              SizedBox(
-                width: 250,
-                child: ListenableBuilder(
-                  listenable: themeController,
-                  builder: (context, child) {
-                    return SwitchListTile(
-                      title: const Text("Modo Oscuro"),
-                      value: themeController.isDarkMode,
-                      onChanged: (bool value) => themeController.toggleTheme(),
-                      secondary: const Icon(Icons.brightness_6),
-                    );
-                  },
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // MÉTODO PARA CONSTRUIR CADA ITEM DEL MENÚ CON DISEÑO DE CÁPSULA
   Widget _buildDrawerItem({
     required IconData icon,
     required String title,
@@ -160,16 +256,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         selected: isSelected,
-        selectedTileColor: Colors.orange.withOpacity(0.15),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            15,
-          ), // Bordes redondeados tipo cápsula
-        ),
+        // Eliminados los warnings de withOpacity usando withAlpha universal
+        selectedTileColor: Colors.orange.withAlpha(38),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         onTap: () {
-          setState(() => _rutaSeleccionada = route); // Cambia el estado visual
-          Navigator.pop(context); // Cierra el Drawer
-          Navigator.pushNamed(context, route); // Navega a la ruta
+          setState(() => _rutaSeleccionada = route);
+          Navigator.pop(context);
+          Navigator.pushNamed(context, route);
         },
       ),
     );

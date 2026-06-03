@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../routes/app_routes.dart'; // Importante para las rutas
+import '../../routes/app_routes.dart';
+import '../../main.dart'; // Para acceder al themeController
 
 class CustomBottomBar extends StatelessWidget {
   final int activeIndex;
@@ -7,39 +8,62 @@ class CustomBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      backgroundColor: Colors.grey[300],
-      currentIndex: activeIndex,
-      selectedItemColor: Colors.black,
-      unselectedItemColor: Colors.black54,
-      // 1. Agregamos el tipo para que soporte más de 3 items si fuera necesario
-      type: BottomNavigationBarType.fixed,
-      // 2. Agregamos la lógica para cambiar de pantalla
-      onTap: (index) {
-        if (index == 0) Navigator.pushReplacementNamed(context, AppRoutes.home);
-        if (index == 1)
-          Navigator.pushReplacementNamed(context, AppRoutes.catalog);
-        if (index == 2)
-          Navigator.pushReplacementNamed(
-            context,
-            AppRoutes.bmi,
-          ); // Ruta del IMC
+    return ListenableBuilder(
+      listenable: themeController,
+      builder: (context, child) {
+        final bool isDark = themeController.isDarkMode;
+
+        return Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.5 : 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, -3), // Proyecta la sombra hacia arriba
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            // Redondeamos las esquinas superiores para un acabado premium
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+            child: BottomNavigationBar(
+              backgroundColor: isDark ? Colors.grey[900] : Colors.white,
+              currentIndex: activeIndex,
+              // Color del icono seleccionado (Naranja de la marca)
+              selectedItemColor: isDark ? Colors.orange : Colors.orange[800],
+              // Color de los iconos inactivos
+              unselectedItemColor: isDark ? Colors.grey[500] : Colors.black38,
+              type: BottomNavigationBarType.fixed,
+              showSelectedLabels:
+                  false, // Oculta etiquetas para mantenerlo limpio como tu diseño
+              showUnselectedLabels: false,
+              elevation: 0,
+              onTap: (index) {
+                if (index == 0)
+                  Navigator.pushReplacementNamed(context, AppRoutes.home);
+                if (index == 1)
+                  Navigator.pushReplacementNamed(context, AppRoutes.catalog);
+                if (index == 2)
+                  Navigator.pushReplacementNamed(context, AppRoutes.bmi);
+              },
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_rounded, size: 32),
+                  label: "Inicio",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.restaurant_menu_rounded, size: 32),
+                  label: "Catálogo",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.monitor_weight_rounded, size: 32),
+                  label: "IMC",
+                ),
+              ],
+            ),
+          ),
+        );
       },
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home, size: 35), label: ""),
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.restaurant_menu,
-            size: 35,
-          ), // Cambiado a menú para el catálogo
-          label: "",
-        ),
-        // 3. Cambiamos el icono de 'Person' por el de Salud/IMC
-        BottomNavigationBarItem(
-          icon: Icon(Icons.monitor_weight_outlined, size: 35),
-          label: "",
-        ),
-      ],
     );
   }
 }
